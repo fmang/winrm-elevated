@@ -63,9 +63,8 @@ describe 'powershell elevated runner', integration: true do # rubocop: disable M
     end
 
     it { should have_exit_code 0 }
-    it 'outputs a transliterated version of the original string' do
-      expect(output.stdout).to eq "Dès Noël, où un zéphyr haï me vêt de glaçons würmiens, je dîne d'exquis " \
-                                  "rôtis de bouf au kir, à l'aÿ d'âge mûr, &cætera.\r\n"
+    it 'outputs the original string' do
+      expect(output.stdout).to eq "#{text}\r\n"
     end
     it { should have_no_stderr }
   end

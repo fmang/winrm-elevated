@@ -51,16 +51,18 @@ $task_xml = @'
   </Settings>
   <Actions Context="Author">
     <Exec>
-      <Command>cmd</Command>
-      <Arguments>{arguments}</Arguments>
+      <Command>PowerShell</Command>
+      <Arguments>-Command "$OutputEncoding = [console]::InputEncoding = [console]::OutputEncoding = [System.Text.Encoding]::UTF8 ; $pinfo = New-Object System.Diagnostics.ProcessStartInfo ; $pinfo.FileName = \"PowerShell\" ; $pinfo.RedirectStandardOutput = $true ; $pinfo.RedirectStandardError = $true ; $pinfo.UseShellExecute = $false ; $pinfo.Arguments = \"{arguments}\" ; $p = New-Object System.Diagnostics.Process ; $p.StartInfo = $pinfo ; $p.Start() ; $p.WaitForExit() ; $p.StandardOutput.ReadToEnd() | Out-File {out_file} -NoNewline ; $p.StandardError.ReadToEnd() | Out-File {err_file} -NoNewline ; exit $p.ExitCode"</Arguments>
     </Exec>
   </Actions>
 </Task>
 '@
 
-$arguments = "/c powershell.exe -executionpolicy bypass -NoProfile -File $script_file &gt; $out_file 2&gt;$err_file"
+$arguments = "-executionpolicy bypass -NoProfile -File $script_file"
 
 $task_xml = $task_xml.Replace("{arguments}", $arguments)
+$task_xml = $task_xml.Replace("{out_file}", $out_file)
+$task_xml = $task_xml.Replace("{err_file}", $err_file)
 $task_xml = $task_xml.Replace("{username}", $username)
 $task_xml = $task_xml.Replace("{logon_type}", $logon_type_xml)
 
@@ -88,7 +90,7 @@ try {
 
 function SlurpOutput($file, $cur_line, $out_type) {
   if (Test-Path $file) {
-    get-content -Encoding Oem $file | Select-Object -skip $cur_line | ForEach-Object {
+    get-content $file | Select-Object -skip $cur_line | ForEach-Object {
       $cur_line += 1
       if ($out_type -eq 'err') {
         $host.ui.WriteErrorLine("$_")
